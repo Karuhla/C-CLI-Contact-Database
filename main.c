@@ -6,8 +6,9 @@
 
 typedef struct {
     int id;
-    char name [50];
-    char email [100];
+    char first_name [50];
+    char last_name [50];
+    char phone [100];
 } Contact;
 
 int main(){
@@ -43,11 +44,12 @@ int main(){
             Contact new_contact;
 
             char *id = strtok(NULL, " ");
-            char *name = strtok(NULL, " ");
-            char *email = strtok(NULL, " ");
+            char *first_name = strtok(NULL, " ");
+            char *last_name = strtok(NULL, " ");
+            char *phone = strtok(NULL, " ");
 
-            if (id == NULL || name == NULL || email == NULL){
-                printf("Usage: insert <id> <name> <email>\n");
+            if (id == NULL || first_name == NULL || last_name == NULL || phone == NULL){
+                printf("Usage: insert <id> <first_name> <last_name> <phone>\n");
                 continue;
             }
 
@@ -73,29 +75,92 @@ int main(){
             }
 
             new_contact.id = id_num;
-            strcpy(new_contact.name, name);
-            strcpy(new_contact.email, email);
+            strcpy(new_contact.first_name, first_name);
+            strcpy(new_contact.last_name, last_name);
+            strcpy(new_contact.phone, phone);
 
             contacts[contact_count] = new_contact;
             contact_count++;
 
             printf("ID: %d\n", new_contact.id);
-            printf("Name: %s\n", new_contact.name);
-            printf("Email: %s\n", new_contact.email);
+            printf("First name: %s\n", new_contact.first_name);
+            printf("Last name: %s\n", new_contact.last_name);
+            printf("Phone: %s\n", new_contact.phone);
 
         }else if (strcmp(command, "select") == 0){            
             
-            printf("ID    Name            Email\n");
-            printf("-------------------------------\n");
+            printf("ID    Name            Surname         Phone\n");
+            printf("-----------------------------------------------\n");
             for (int i = 0; i < contact_count; i++){
-                printf("%-5d %-15s %-30s\n", contacts[i].id, contacts[i].name, contacts[i].email);
+                printf("%-5d %-15s %-15s %-30s\n", contacts[i].id, contacts[i].first_name, contacts[i].last_name, contacts[i].phone);
             }
 
         }else if (strcmp(command, "delete") == 0){
-            printf("Delete Command detected\n");
-        }else if (strcmp(command, "help") == 0){
-            printf("Help Command detected\n");
-        }else{
+
+            char *id = strtok(NULL, " ");
+
+            if (id == NULL){
+                printf("Usage: delete <id>\n");
+                continue;
+            }
+
+            int id_num = atoi(id);
+
+            for (int i = 0; i < contact_count ; i++){
+                if (contacts[i].id == id_num){
+                    for(int j = i; j < contact_count - 1; j++){
+                        contacts[j] = contacts[j + 1];
+                    }
+                    printf("Contact deleted\n");
+                    contact_count--;
+                    break;
+                }
+            }
+
+        }else if (strcmp(command, "find") == 0){
+
+            char *query = strtok(NULL, " ");
+
+            if (query == NULL) {
+                printf("Usage: find <id|name>\n");
+                continue;
+            }
+
+            int id_num = atoi(query);
+            int found = 0;
+
+            printf("ID    Name            Surname         Phone\n");
+            printf("-----------------------------------------------\n");
+
+            for(int i = 0; i < contact_count; i++){
+                if(
+                    contacts[i].id == id_num ||
+                    strcmp(query, contacts[i].first_name) == 0 || 
+                    strcmp(query, contacts[i].last_name) == 0 
+                ){
+                    printf("%-5d %-15s %-15s %-30s\n", 
+                        contacts[i].id, contacts[i].first_name, contacts[i].last_name, contacts[i].phone);
+                    
+                    found = 1;
+                }
+            }
+
+            if(!found){
+                printf("Contact not found\n");
+            }
+
+        }
+        else if (strcmp(command, "help") == 0){
+            
+            printf("Available commands:\ninsert <id> <first_name> <last_name> <phone>\nselect\ndelete <id>\nfind <id|name>\nclear\nhelp\nexit\n");
+
+        }else if (strcmp(command, "clear") == 0){
+
+            contact_count = 0;
+            printf("All contacts cleared\n");
+
+        }
+        else{
             printf("Unknown command\n");
         }       
     }
