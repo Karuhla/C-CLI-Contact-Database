@@ -3,6 +3,7 @@
 #include <string.h>
 
 #define INPUT_SIZE 256
+#define DATABASE_FILE "contacts.db"
 
 typedef struct {
     int id;
@@ -140,7 +141,6 @@ int main(){
                 ){
                     printf("%-5d %-15s %-15s %-30s\n", 
                         contacts[i].id, contacts[i].first_name, contacts[i].last_name, contacts[i].phone);
-                    
                     found = 1;
                 }
             }
@@ -158,6 +158,72 @@ int main(){
 
             contact_count = 0;
             printf("All contacts cleared\n");
+
+        }else if (strcmp(command, "save") == 0){
+
+            FILE *file = fopen(DATABASE_FILE, "w");
+
+            if (file == NULL){
+                printf("Error opening file\n");
+                continue;
+            }
+
+            for (int i = 0; i < contact_count; i++){
+                fprintf(file, "%d %s %s %s\n",
+                    contacts[i].id,
+                    contacts[i].first_name,
+                    contacts[i].last_name,
+                    contacts[i].phone);
+            }
+
+            fclose(file);
+
+            printf("Database saved successfully.\n");
+
+        }else if (strcmp(command, "load") == 0){
+
+            FILE *file = fopen(DATABASE_FILE, "r");
+
+            if (file == NULL){
+                printf("No database file found.\n");
+                continue;
+            }
+
+            contact_count = 0;
+
+            Contact temp;
+
+            while (fscanf(file, "%d %s %s %s",
+                &temp.id,
+                temp.first_name,
+                temp.last_name,
+                temp.phone) == 4){
+
+            if (capacity == 0){
+                contacts = malloc(sizeof(Contact) * 4);
+                capacity = 4;
+            }
+
+            if (contact_count >= capacity){
+                capacity = capacity * 2;
+
+                Contact *temp_ptr = realloc(contacts, sizeof(Contact) * capacity);
+
+                if (temp_ptr == NULL){
+                    printf("Memory allocation failed\n");
+                    free(contacts);
+                    exit(1);
+                }
+
+                contacts = temp_ptr;
+            }
+
+            contacts[contact_count] = temp;
+            contact_count++;
+        }
+
+            fclose(file);
+            printf("Database loaded successfully.\n");
 
         }
         else{
