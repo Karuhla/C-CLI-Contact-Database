@@ -12,6 +12,10 @@ typedef struct {
     char phone [100];
 } Contact;
 
+void insert_contact(Contact **contacts, int *contact_count, int *capacity,
+                    char *id, char *first_name, char *last_name, char *phone);
+void select_contacts(Contact *contacts, int contact_count);
+
 int main(){
 
     char input[INPUT_SIZE];
@@ -54,47 +58,12 @@ int main(){
                 continue;
             }
 
-            int id_num = atoi(id);
+            insert_contact(&contacts, &contact_count, &capacity,
+                            id, first_name, last_name, phone);
 
-            if (capacity == 0){
-                contacts = malloc(sizeof(Contact) * 4);
-                capacity = 4;
-            }
+        }else if (strcmp(command, "select") == 0){          
 
-            if (contact_count >= capacity) {
-                capacity = capacity * 2;
-
-                Contact *temp = realloc(contacts, sizeof(Contact) * capacity);
-
-                if (temp == NULL) {
-                    printf("Memory allocation failed\n");
-                    free(contacts);
-                    exit(1);
-                }
-
-                contacts = temp;
-            }
-
-            new_contact.id = id_num;
-            strcpy(new_contact.first_name, first_name);
-            strcpy(new_contact.last_name, last_name);
-            strcpy(new_contact.phone, phone);
-
-            contacts[contact_count] = new_contact;
-            contact_count++;
-
-            printf("ID: %d\n", new_contact.id);
-            printf("First name: %s\n", new_contact.first_name);
-            printf("Last name: %s\n", new_contact.last_name);
-            printf("Phone: %s\n", new_contact.phone);
-
-        }else if (strcmp(command, "select") == 0){            
-            
-            printf("ID    Name            Surname         Phone\n");
-            printf("-----------------------------------------------\n");
-            for (int i = 0; i < contact_count; i++){
-                printf("%-5d %-15s %-15s %-30s\n", contacts[i].id, contacts[i].first_name, contacts[i].last_name, contacts[i].phone);
-            }
+            select_contacts(contacts, contact_count);
 
         }else if (strcmp(command, "delete") == 0){
 
@@ -226,6 +195,49 @@ int main(){
             printf("Database loaded successfully.\n");
 
         }
+        else if (strcmp(command, "update") == 0){
+
+            char *id = strtok(NULL, " ");
+            char *field = strtok(NULL, " ");
+            char *value = strtok(NULL, " ");
+
+            if (id == NULL || field == NULL || value == NULL){
+                printf("Usage: update <id> <field> <value>\n");
+                continue;
+            }
+
+            int id_num = atoi(id);
+            int updated = 0;
+
+            for (int i = 0; i < contact_count; i++) {
+
+                if (contacts[i].id == id_num) {
+
+                    if (strcmp(field, "first_name") == 0) {
+                        strcpy(contacts[i].first_name, value);
+                    }
+                    else if (strcmp(field, "last_name") == 0) {
+                        strcpy(contacts[i].last_name, value);
+                    }
+                    else if (strcmp(field, "phone") == 0) {
+                        strcpy(contacts[i].phone, value);
+                    }
+                    else {
+                        printf("Invalid field.\n");
+                        break;
+                    }
+
+                    printf("Contact updated.\n");
+                    updated = 1;
+                    break;
+                }
+            }
+
+            if(!updated){
+                printf("Invalid field.\n");
+            }
+
+        }
         else{
             printf("Unknown command\n");
         }       
@@ -235,4 +247,67 @@ int main(){
 
     return 0;
 
+}
+
+void insert_contact(Contact **contacts, int *contact_count, int *capacity,
+                    char *id, char *first_name, char *last_name, char *phone){
+
+    int id_num = atoi(id);
+
+    Contact new_contact;
+
+    for (int i = 0; i < *contact_count; i++){
+        if ((*contacts)[i].id == id_num){
+            printf("Error: Contact with ID %d already exists.\n", id_num);
+            return;
+        }
+    }
+
+    if (*capacity == 0){
+        *contacts = malloc(sizeof(Contact) * 4);
+        *capacity = 4;
+    }
+
+    if (*contact_count >= *capacity){
+        *capacity = *capacity * 2;
+
+        Contact *temp = realloc(*contacts, sizeof(Contact) * (*capacity));
+
+        if (temp == NULL){
+            printf("Memory allocation failed\n");
+            free(*contacts);
+            exit(1);
+        }
+
+        *contacts = temp;
+    }
+
+    new_contact.id = id_num;
+    strcpy(new_contact.first_name, first_name);
+    strcpy(new_contact.last_name, last_name);
+    strcpy(new_contact.phone, phone);
+
+    (*contacts)[*contact_count] = new_contact;
+    (*contact_count)++;
+
+    printf("Contact inserted successfully.\n");
+}
+
+void select_contacts(Contact *contacts, int contact_count){
+
+    if (contact_count == 0){
+        printf("No contacts found.\n");
+        return;
+    }
+
+    printf("ID    Name            Surname         Phone\n");
+    printf("-----------------------------------------------\n");
+
+    for (int i = 0; i < contact_count; i++){
+        printf("%-5d %-15s %-15s %-30s\n",
+            contacts[i].id,
+            contacts[i].first_name,
+            contacts[i].last_name,
+            contacts[i].phone);
+    }
 }

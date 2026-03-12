@@ -1,2 +1,6 @@
-contactdb
-*.o
+contacts.db
+.vscode/
+main.exe
+main.ilk
+main.obj
+main.pdb
